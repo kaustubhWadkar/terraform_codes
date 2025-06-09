@@ -1,0 +1,64 @@
+provider "aws" {
+  region = "us-east-1"
+}
+
+
+variable "ecrList" {
+  description = "this is ecr list which need to creat"
+  type = list(string)
+  default = ["terra-ecr-1", "terra-ecr-2", "terra-ecr-3", "terra-ecr-4", "terra-ecr-5", "terra-ecr-6", "terra-ecr-7", "terra-ecr-8", "terra-ecr-9", "terra-ecr-10", "terra-ecr-11", "terra-ecr-12", "terra-ecr-13", "terra-ecr-14", "terra-ecr-15", "terra-ecr-16", "terra-ecr-17", "terra-ecr-18", "terra-ecr-19", "terra-ecr-20"]
+}
+
+
+
+resource "aws_ecr_repository" "ecr_creation" {
+   # for_each = toset(var.ecrList)
+   # name = each.value
+
+   count = length(var.ecrList)
+   name = var.ecrList[count.index]
+
+    image_scanning_configuration {
+      scan_on_push = true
+    
+    }
+
+    image_tag_mutability = "MUTABLE"
+
+    tags = {
+      Environment = "sit"
+      Application = "wwws"
+
+    }
+
+
+
+  
+}
+
+
+resource "aws_ecr_lifecycle_policy" "lifeCycle_policy" {
+
+    count = length(var.ecrList)
+    repository = aws_ecr_repository.ecr_creation[count.index].name
+    policy = jsonencode({
+    rules = [
+      {
+        rulePriority = 1
+        description  = "Delete untagged images after 30 days"
+        selection    = {
+          tagStatus     = "untagged"
+          countType     = "sinceImagePushed"
+          countUnit     = "days"
+          countNumber   = 30
+        }
+        action = {
+          type = "expire"
+        }
+      }
+    ]
+  })
+  
+}
+
+
