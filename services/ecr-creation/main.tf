@@ -3,6 +3,7 @@ locals {
   Application = "ws"
   image_tag_mutability = "MUTABLE"
   ecr_name = "${local.Environment}-${local.Application}"
+  owner = "kkw"
 
 }
 
@@ -26,6 +27,7 @@ resource "aws_ecr_repository" "ecr_creation" {
       Environment = local.Environment
       Application = local.Application
       ecr_Name = local.ecr_name
+      owner = local.owner
 
     }
 }
